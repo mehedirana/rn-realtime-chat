@@ -4,59 +4,40 @@ import io from 'socket.io-client';
 
 // Initialize the socket connection with the server's IP
 // const socket = io('http://103.81.68.146:3000', {
-const socket = io('http://10.50.20.56:3000', {
-  transports: ['websocket', 'polling'], // Attempt both transports
-  reconnection: true,  // Enable reconnection
-  reconnectionAttempts: 5, // Try reconnecting up to 5 times
-  reconnectionDelay: 2000, // Reconnect after 2 seconds
-  forceNew: true,  // Always create a new connection
-  timeout: 10000   // Set a timeout for the connection
-});
+const socket = io('http://10.50.20.56:3000');
 
+const currentUserId = 'Og1yoviJ1hMLlG9GAAAm'; // Replace with actual user ID
 
 const ChatScreen = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    console.log('Attempting to connect to the server...');
-
-    // Debug socket connection
-    socket.on('connect', () => {
-      console.log('Connected to server. Socket ID:', socket.id);
-    });
-
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error.message);
-    });
-
-    socket.on('disconnect', (reason) => {
-      console.log('Disconnected from server. Reason:', reason);
-    });
-
     // Listen for chat messages from the server
-    socket.on('chat message', (message) => {
-      console.log('Received message from server:', message);
-      setMessages((prevMessages) => [...prevMessages, message]);
+    socket.on('chat message', (data) => {
+      // Add new message to the message list
+      setMessages((prevMessages) => [...prevMessages, data]);
     });
 
-    // Handle any potential error events
-    socket.on('error', (error) => {
-      console.error('Socket error:', error);
-    });
-
-    // Clean up the socket connection when component unmounts
+    // Clean up the socket connection when the component unmounts
     return () => {
-      console.log('Disconnecting from server...');
       socket.disconnect();
     };
   }, []);
 
   const sendMessage = () => {
     if (message) {
-      console.log('Sending message to server:', message);
       socket.emit('chat message', message); // Send message to the server
       setMessage(''); // Clear input after sending
+    }
+  };
+
+  const getMessageStyle = (userId) => {
+    // Different colors for different users
+    if (userId === messages[0]?.userId) {
+      return styles.myMessage;
+    } else {
+      return styles.otherMessage;
     }
   };
 
@@ -65,7 +46,13 @@ const ChatScreen = () => {
       <FlatList
         data={messages}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <Text style={styles.message}>{item}</Text>}
+        renderItem={({ item }) => (
+          <View style={[styles.messageContainer, getMessageStyle(item.userId)]}>
+            <Text style={styles.userId}>{item?.userId}: </Text>
+            <Text style={styles.message}>{item?.message}</Text>
+            {/* <Text style={styles.message}>{item}</Text> */}
+          </View>
+        )}
       />
       <TextInput
         style={styles.input}
@@ -79,9 +66,13 @@ const ChatScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 10 },
+  container: { flex: 1, padding: 10, color:'#fff' },
   input: { borderWidth: 1, padding: 10, marginVertical: 10 },
-  message: { padding: 5, backgroundColor: '#f0f0f0', marginVertical: 5 },
+  messageContainer: { flexDirection: 'row', marginVertical: 5, padding: 10, borderRadius: 5 },
+  userId: { fontWeight: 'bold', color:'#000' },
+  message: { marginLeft: 5, backgroundColor: '#f0f0f0', padding: 5, color:'#000'  },
+  myMessage: { backgroundColor: '#add8e6', alignSelf: 'flex-end' }, // Light blue for the current user
+  otherMessage: { backgroundColor: '#f0f0f0', alignSelf: 'flex-start' }, // Grey for other users
 });
 
 export default ChatScreen;
