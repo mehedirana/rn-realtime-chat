@@ -28,7 +28,8 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (message) => {
         console.log('Received message from client:', message); // Log received messages
-        io.emit('chat message', message); // Broadcast message to all clients
+        // io.emit('chat message', message); // Broadcast message to all clients
+          io.emit('chat message', { message, userId: socket.id })
     });
 
     socket.on('disconnect', (reason) => {
