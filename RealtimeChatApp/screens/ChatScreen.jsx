@@ -3,7 +3,6 @@ import { View, TextInput, Button, FlatList, Text, StyleSheet } from 'react-nativ
 import io from 'socket.io-client';
 
 // Initialize the socket connection with the server's IP
-// const socket = io('http://103.81.68.146:3000', {
 const socket = io('http://10.50.20.56:3000');
 
 const currentUserId = 'Og1yoviJ1hMLlG9GAAAm'; // Replace with actual user ID
